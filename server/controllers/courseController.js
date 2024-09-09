@@ -144,3 +144,38 @@ export const getAllCourse = async (req, res) => {
     });
   }
 };
+
+export const getCourseByUser = async (req, res) => {
+  try {
+    const userCourseList = req.user?.courses;
+    const courseId = req.params.id;
+
+    // the course exists in the user's course list
+    console.log(userCourseList);
+    const courseExists = userCourseList?.find(
+      (course) => course._id.toString() === courseId
+    );
+
+    if (!courseExists) {
+      return res.status(404).send({
+        success: false,
+        message: "You are not eligible to access this course",
+      });
+    }
+
+    const course = await coursesModel.findById(courseId);
+    const content = course?.courseData;
+
+    res.status(200).send({
+      success: true,
+      message: "Course Found",
+      content: content,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
