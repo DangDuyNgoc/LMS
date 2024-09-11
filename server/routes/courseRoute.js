@@ -1,5 +1,9 @@
 import express from "express";
 import {
+  addAnswer,
+  addQuestion,
+  addReplyToReview,
+  addReview,
   getAllCourse,
   getCourseByUser,
   getSingleCourse,
@@ -32,5 +36,13 @@ courseRoute.get("/get-course/:id", getSingleCourse);
 courseRoute.get("/get-course", getAllCourse);
 
 courseRoute.get("/get-course-content/:id", isAuthenticated, getCourseByUser);
+
+courseRoute.post("/add-question", isAuthenticated, addQuestion);
+
+courseRoute.post("/add-answer", isAuthenticated, addAnswer);
+
+courseRoute.post("/add-review/:id", isAuthenticated, addReview);
+
+courseRoute.post("/add-reply", isAuthenticated, addReplyToReview);
 
 export default courseRoute;

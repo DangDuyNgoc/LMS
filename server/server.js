@@ -10,6 +10,7 @@ import {v2 as cloudinary} from "cloudinary";
 import connectDB from "./config/db.js";
 import userRoute from "./routes/userRoute.js";
 import courseRoute from "./routes/courseRoute.js";
+import orderRoute from "./routes/orderRoute.js";
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/user", userRoute);
 app.use("/api/course", courseRoute);
+app.use("/api/order", orderRoute);
 
 const port = process.env.PORT || 8080;
 
