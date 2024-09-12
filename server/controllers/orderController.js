@@ -103,9 +103,10 @@ export const createOrder = async (req, res) => {
   }
 };
 
+// get all orders
 export const getAllOrder = async (req, res) => {
   try {
-    const order = await orderModel.find();
+    const order = await orderModel.find().sort({createdAt: -1});
 
     if (!order) {
       return res.status(404).send({

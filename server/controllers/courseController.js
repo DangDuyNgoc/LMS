@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import { createCourse } from "../services/courseService.js";
 import coursesModel from "../models/courseModel.js";
 import { sendMail } from "./../config/sendEmail.js";
+import notificationModel from "../models/notificationModel.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -223,11 +224,11 @@ export const addQuestion = async (req, res) => {
 
     courseContent.questions.push(newQuestion);
 
-    // await notificationModel.create({
-    //   user: req.user?._id,
-    //   title: "New Question Received",
-    //   message: `You have a new question is ${courseContent.title}`,
-    // });
+    await notificationModel.create({
+      user: req.user?._id,
+      title: "New Question Received",
+      message: `You have a new question in ${courseContent.title}`,
+    });
 
     await course.save();
 
@@ -298,33 +299,37 @@ export const addAnswer = async (req, res) => {
 
     await course.save();
 
-    // if(req.user?._id !== question.user._id) {
-    //   await
-    // }
-
-    const data = {
-      name: req.user.name,
-      title: courseContent.title,
-    };
-
-    const html = await ejs.renderFile(
-      path.join(__dirname, "../mail/questionReply.ejs"),
-      data
-    );
-
-    try {
-      await sendMail({
-        email: question.user.email,
-        subject: "Question Reply",
-        template: "questionReply.ejs",
-        data,
+    if (req.user?._id === question._id) {
+      await notificationModel.create({
+        user: req.user?._id,
+        title: "New Question Reply Received",
+        message: `You have a new question reply in ${courseContent.title}`,
       });
-    } catch (error) {
-      console.log(error);
-      res.status(500).send({
-        success: false,
-        message: "Cannot send email to user",
-      });
+    } else {
+      const data = {
+        name: req.user.name,
+        title: courseContent.title,
+      };
+
+      const html = await ejs.renderFile(
+        path.join(__dirname, "../mail/questionReply.ejs"),
+        data
+      );
+
+      try {
+        await sendMail({
+          email: question.user.email,
+          subject: "Question Reply",
+          template: "questionReply.ejs",
+          data,
+        });
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({
+          success: false,
+          message: "Cannot send email to user",
+        });
+      }
     }
 
     res.status(200).send({
@@ -443,6 +448,54 @@ export const addReplyToReview = async (req, res) => {
       success: true,
       message: "Review Added Successfully",
       course: course,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// get all course for admin
+export const getAllCourseAdmin = async (req, res) => {
+  try {
+    const course = await coursesModel.find().sort({ createdAt: -1 });
+
+    return res.status(200).send({
+      success: true,
+      message: "Courses Retrieved Successfully",
+      courses: course,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// delete course
+export const deleteCourse = async (req, res) => {
+  try {
+    const courseId = req.params.id;
+
+    const course = await coursesModel.findById(courseId);
+
+    if (!course) {
+      return res.status(404).send({
+        success: false,
+        message: "Course Not Found",
+      });
+    }
+
+    await course.deleteOne({ courseId });
+
+    return res.status(200).send({
+      success: true,
+      message: "Course Deleted Successfully",
     });
   } catch (error) {
     console.log(error);

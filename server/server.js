@@ -5,20 +5,21 @@ import dotenv from "dotenv";
 import morgan from "morgan";
 import express from "express";
 import cookieParser from "cookie-parser";
-import {v2 as cloudinary} from "cloudinary";
+import { v2 as cloudinary } from "cloudinary";
 
 import connectDB from "./config/db.js";
 import userRoute from "./routes/userRoute.js";
 import courseRoute from "./routes/courseRoute.js";
 import orderRoute from "./routes/orderRoute.js";
+import notificationRoute from "./routes/notificationRoute.js";
 
 dotenv.config();
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_API_KEY,
-  api_secret: process.env.CLOUD_SECRET_KEY
-})
+  api_secret: process.env.CLOUD_SECRET_KEY,
+});
 
 console.log(`MONGO_URI: ${process.env.MONGO_URI}`);
 
@@ -41,6 +42,7 @@ app.get("/", (req, res) => {
 app.use("/api/user", userRoute);
 app.use("/api/course", courseRoute);
 app.use("/api/order", orderRoute);
+app.use("/api/notification", notificationRoute);
 
 const port = process.env.PORT || 8080;
 

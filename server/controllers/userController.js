@@ -374,7 +374,7 @@ export const updateUserAvatar = async (req, res) => {
       if (user?.avatar?.public_id) {
         // delete old avatar picture
         await cloudinary.v2.uploader.destroy(user?.avatar?.public_id);
-        
+
         const myCloud = await cloudinary.v2.uploader.upload(avatar, {
           folder: "avatars",
           width: 150,
@@ -401,6 +401,84 @@ export const updateUserAvatar = async (req, res) => {
       success: true,
       message: "Updated User Picture Successfully",
       user: user,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+export const getAllUser = async (req, res) => {
+  try {
+    const user = await userModel.find().sort({ createdAt: -1 });
+
+    return res.status(200).send({
+      success: true,
+      message: "All Users Retrieved Successfully",
+      users: user,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+export const updateUserRole = async (req, res) => {
+  try {
+    const { id, role } = req.body;
+
+    const user = await userModel.findById(id);
+
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    user.role = role;
+
+    await user.save();
+
+    return res.status(200).send({
+      success: true,
+      message: "User Role Updated Successfully",
+      user: user,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// Delete user
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params.id;
+
+    const user = await userModel.findById(id);
+
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    await user.deleteOne({ id });
+
+    return res.status(200).send({
+      success: true,
+      message: "Deleted User Successfully",
     });
   } catch (error) {
     console.log(error);
