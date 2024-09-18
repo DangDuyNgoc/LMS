@@ -2,6 +2,7 @@ import cloudinary from "cloudinary";
 import mongoose from "mongoose";
 import ejs from "ejs";
 import path from "path";
+import axios from "axios";
 import { fileURLToPath } from "url";
 
 import { createCourse } from "../services/courseService.js";
@@ -496,6 +497,39 @@ export const deleteCourse = async (req, res) => {
     return res.status(200).send({
       success: true,
       message: "Course Deleted Successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// generateVideoUrl
+export const generateVideoUrl = async (req, res) => {
+  try {
+    const { videoId } = req.body;
+
+    const response = await axios.post(
+      `https://dev.vdocipher.com/api/videos/${videoId}/otp`,
+      {
+        ttl: 300,
+      },
+      {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Apisecret ${process.env.VDOCIPHER_SECRET_KEY} `,
+        },
+      }
+    );
+
+    return res.status(200).send({
+      success: true,
+      message: "Video Url Generated Successfully",
+      data: response.data,
     });
   } catch (error) {
     console.log(error);

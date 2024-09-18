@@ -7,7 +7,10 @@ import orderModel from "../models/orderModel.js";
 
 import ejs from "ejs";
 import path from "path";
+import Stripe from "stripe";
 import { fileURLToPath } from "url";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -106,7 +109,7 @@ export const createOrder = async (req, res) => {
 // get all orders
 export const getAllOrder = async (req, res) => {
   try {
-    const order = await orderModel.find().sort({createdAt: -1});
+    const order = await orderModel.find().sort({ createdAt: -1 });
 
     if (!order) {
       return res.status(404).send({
@@ -120,6 +123,34 @@ export const getAllOrder = async (req, res) => {
       message: "Orders found",
       order: order,
     });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// new payment
+export const newPayment = async (req, res) => {
+  try {
+    const myPayment = await stripe.paymentIntents.create({
+      amount: req.body.amount,
+      currency: "USD",
+      metadata: {
+        company: "E-Learning",
+      },
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+
+    return res.status(200).send({
+      success: true,
+      message: "Payment successful",
+      paymentIntent: myPayment,
+    })
   } catch (error) {
     console.log(error);
     return res.status(500).send({
