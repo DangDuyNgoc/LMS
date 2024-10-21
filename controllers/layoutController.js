@@ -81,26 +81,26 @@ export const updateLayout = async (req, res) => {
       const bannerData = await layoutModel.findOne({ type: "Banner" });
       const { image, title, subtitle } = req.body;
 
-      if (bannerData) {
-        await cloudinary.v2.uploader.destroy(bannerData.image.public_id);
-      }
-
-      const myCloud = await cloudinary.v2.uploader.upload(image, {
-        folder: "layout",
-      });
+      const data = image.startsWith("https")
+        ? bannerData
+        : await cloudinary.v2.uploader.upload(image, {
+            folder: "layout",
+          });
 
       const banner = {
         type: "Banner",
-        banner: {
-          image: {
-            public_id: myCloud.public_id,
-            url: myCloud.secure_url,
-          },
-          title,
-          subtitle,
+        image: {
+          public_id: image.startsWith("https")
+            ? bannerData.banner.image.public_id
+            : data?.public_id,
+          url: image.startsWith("https")
+            ? bannerData.banner.image.url
+            : data?.secure_url,
         },
+        title,
+        subtitle,
       };
-
+      
       await layoutModel.findByIdAndUpdate(bannerData._id, { banner });
     }
 
@@ -159,7 +159,7 @@ export const getLayoutByType = async (req, res) => {
     return res.status(200).send({
       success: true,
       message: "Get Layout Successfully",
-      layout: layout,
+      layout,
     });
   } catch (error) {
     console.log(error);

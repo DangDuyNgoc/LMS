@@ -13,6 +13,7 @@ import courseRoute from "./routes/courseRoute.js";
 import orderRoute from "./routes/orderRoute.js";
 import notificationRoute from "./routes/notificationRoute.js";
 import layoutRoute from "./routes/layoutRoute.js";
+import analyticsRoute from './routes/analyticsRoute.js';
 
 dotenv.config();
 
@@ -52,6 +53,7 @@ app.use("/api/course", courseRoute);
 app.use("/api/order", orderRoute);
 app.use("/api/notification", notificationRoute);
 app.use("/api/layout", layoutRoute);
+app.use("/api/analytics", analyticsRoute);
 
 const port = process.env.PORT || 8080;
 

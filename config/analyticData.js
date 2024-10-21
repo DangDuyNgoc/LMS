@@ -22,7 +22,7 @@ export async function yearData(model) {
       year: "numeric",
     });
 
-    const count = await model.countDocument({
+    const count = await model.countDocuments({
       createdAt: {
         $gte: startDate,
         $lt: endDate,

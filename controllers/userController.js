@@ -357,6 +357,7 @@ export const updateUserPassword = async (req, res) => {
     });
   }
 };
+
 // update user avatar
 export const updateUserAvatar = async (req, res) => {
   try {
@@ -407,6 +408,7 @@ export const updateUserAvatar = async (req, res) => {
   }
 };
 
+// get all users for admin
 export const getAllUser = async (req, res) => {
   try {
     const user = await userModel.find().sort({ createdAt: -1 });
