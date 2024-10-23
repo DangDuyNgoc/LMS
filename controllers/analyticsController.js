@@ -46,12 +46,12 @@ export const getCoursesAnalytic = async (req, res) => {
 // get orders analytics
 export const getOrdersAnalytic = async (req, res) => {
   try {
-    const users = await yearData(orderModel);
+    const orders = await yearData(orderModel);
 
     return res.status(200).send({
       success: true,
       message: "Get Orders Analytics Successfully",
-      users,
+      orders,
     });
   } catch (error) {
     console.log(error);

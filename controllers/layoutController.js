@@ -79,7 +79,7 @@ export const updateLayout = async (req, res) => {
 
     if (type === "Banner") {
       const bannerData = await layoutModel.findOne({ type: "Banner" });
-      const { image, title, subtitle } = req.body;
+      const { image, title, subTitle } = req.body;
 
       const data = image.startsWith("https")
         ? bannerData
@@ -98,9 +98,9 @@ export const updateLayout = async (req, res) => {
             : data?.secure_url,
         },
         title,
-        subtitle,
+        subTitle,
       };
-      
+
       await layoutModel.findByIdAndUpdate(bannerData._id, { banner });
     }
 
@@ -163,6 +163,92 @@ export const getLayoutByType = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// delete category
+export const deleteCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const categoryData = await layoutModel.findOne({ type: "Categories" });
+
+    if (!categoryData) {
+      return res.status(404).send({
+        success: false,
+        message: "Categories layout not found",
+      });
+    }
+
+    // Filter other categories with id to delete
+    const updatedCategories = categoryData.categories.filter(
+      (category) => category._id.toString() !== id
+    );
+
+    // Update the categories and save
+    categoryData.categories = updatedCategories;
+    await categoryData.save();
+
+    return res.status(200).send({
+      success: true,
+      message: "Category deleted successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// delete FAQ
+export const deleteFAQ = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).send({
+        success: false,
+        message: "FAQ ID not provided",
+      });
+    }
+
+    const faqData = await layoutModel.findOne({ type: "FAQ" });
+
+    if (!faqData) {
+      return res.status(404).send({
+        success: false,
+        message: "FAQ layout not found",
+      });
+    }
+
+    // Filter other faq with id to delete
+    const updatedFAQs = faqData.faq.filter(
+      (item) => item._id.toString() !== id
+    );
+
+    // Check if any FAQ was actually deleted
+    if (updatedFAQs.length === faqData.faq.length) {
+      return res.status(404).send({
+        success: false,
+        message: "FAQ not found",
+      });
+    }
+
+    // Update the faq and save
+    faqData.faq = updatedFAQs;
+    await faqData.save();
+
+    return res.status(200).send({
+      success: true,
+      message: "FAQ deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
     return res.status(500).send({
       success: false,
       message: "Internal Server Error",
