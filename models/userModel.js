@@ -5,11 +5,11 @@ const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      require: true,
+      required: true,
     },
     email: {
       type: String,
-      require: true,
+      required: true,
       validate: {
         validator: function (value) {
           return emailRegexPattern.test(value);
@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      require: true,
+      required: true,
     },
     courses: [
       {

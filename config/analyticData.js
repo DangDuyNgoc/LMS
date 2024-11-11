@@ -31,5 +31,5 @@ export async function yearData(model) {
 
     last12Months.push({ month: monthYear, count });
   }
-  return { last12Months };
+  return last12Months;
 }

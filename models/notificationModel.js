@@ -3,15 +3,15 @@ import mongoose from "mongoose";
 const notificationSchema = new mongoose.Schema({
   title: {
     type: String,
-    require: true,
+    required: true,
   },
   message: {
     type: String,
-    require: true,
+    required: true,
   },
   status: {
     type: String,
-    require: true,
+    required: true,
     default: "unread",
   },
 }, {timestamps: true});

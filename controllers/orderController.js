@@ -9,8 +9,11 @@ import ejs from "ejs";
 import path from "path";
 import Stripe from "stripe";
 import { fileURLToPath } from "url";
+import { config } from "../config/config.js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+console.log("STRIPE_SECRET_KEY:", config.STRIPE_SECRET_KEY);
+
+const stripe = new Stripe(config.STRIPE_SECRET_KEY);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,6 +21,19 @@ const __dirname = path.dirname(__filename);
 export const createOrder = async (req, res) => {
   try {
     const { courseId, paymentInfo } = req.body;
+
+    // if(paymentInfo) {
+    //   const paymentIntentId = paymentInfo.id;
+    //   console.log("paymentIntentId:", paymentIntentId);
+    //   const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    //   if(paymentIntent.status !== "succeeded") {
+    //     return res.status(400).send({
+    //       success: false,
+    //       message: "Payment was not successful",
+    //     });
+    //   }
+    // }
 
     const user = await userModel.findById(req.user?._id);
 
@@ -42,8 +58,8 @@ export const createOrder = async (req, res) => {
     }
 
     const data = {
-      course: course?._id,
-      user: user?._id,
+      userId: user?._id,
+      courseId: course?._id,
       paymentInfo,
     };
 
@@ -82,7 +98,7 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    user.courses.push(courseId);
+    user?.courses.push(course?._id);
 
     await user.save();
 
@@ -132,12 +148,34 @@ export const getAllOrder = async (req, res) => {
   }
 };
 
+export const sendStripePublishableKey = async (req, res) => {
+  try {
+    const publishableKey = config.STRIPE_PUBLIC_KEY;
+    if (!publishableKey) {
+      return res.status(500).send({
+        success: false,
+        message: "Publishable key is missing",
+      });
+    }
+    return res.status(200).send({
+      success: true,
+      publishableKey,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
 // new payment
 export const newPayment = async (req, res) => {
   try {
-    const myPayment = await stripe.paymentIntents.create({
-      amount: req.body.amount,
-      currency: "USD",
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: req.body.amount * 100,
+      currency: "usd",
       metadata: {
         company: "E-Learning",
       },
@@ -149,8 +187,8 @@ export const newPayment = async (req, res) => {
     return res.status(200).send({
       success: true,
       message: "Payment successful",
-      paymentIntent: myPayment,
-    })
+      paymentIntent: paymentIntent.client_secret,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).send({

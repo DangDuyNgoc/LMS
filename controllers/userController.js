@@ -19,6 +19,24 @@ const __dirname = path.dirname(__filename);
 
 export const registrationUser = async (req, res) => {
   const { name, email, password } = req.body;
+  if(!name) {
+    return res.status(201).send({
+      success: false,
+      message: "Name is required!"
+    })
+  }
+  if(!password) {
+    return res.status(201).send({
+      success: false,
+      message: "password is required!"
+    })
+  }
+  if(!email) {
+    return res.status(201).send({
+      success: false,
+      message: "Email is required!"
+    })
+  }
   try {
     const existing = await userModel.findOne({ email });
 
@@ -151,7 +169,7 @@ const createToken = async (user) => {
 
 export const updateAccessToken = async (req, res) => {
   try {
-    const refresh_token = req.cookies.refresh_token;
+    const refresh_token = req.headers["refresh_token"];
     const decoded = jwt.verify(refresh_token, process.env.REFRESH_TOKEN);
 
     if (!decoded) {
@@ -181,8 +199,6 @@ export const updateAccessToken = async (req, res) => {
       }
     );
 
-    res.cookie("access_token", accessToken, accessTokenOptions);
-    res.cookie("refresh_token", refreshToken, refreshTokenOptions);
     req.user = user;
 
     res.status(200).send({

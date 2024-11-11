@@ -15,10 +15,12 @@ export const SignRefreshToken = (id) => {
 
 export const isAuthenticated = async (req, res, next) => {
   try {
-    const token = req.cookies.access_token;
+    const access_token = req.cookies.access_token;
 
-    if (!token) {
-      console.log("No token found in cookies.");
+    console.log("is: ", access_token);
+    console.log("header: ", req.headers);
+
+    if (!access_token) {
       return res.status(401).send({
         success: false,
         message: "Please login to access this resource",
@@ -26,7 +28,7 @@ export const isAuthenticated = async (req, res, next) => {
     }
 
     // Decode the token to get user information
-    const decoded = jwt.decode(token);
+    const decoded = jwt.decode(access_token);
     if (!decoded) {
       return res.status(400).send({
         success: false,

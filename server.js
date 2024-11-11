@@ -1,7 +1,9 @@
 import bodyParser from "body-parser";
+import dotenv, { config } from "dotenv";
+dotenv.config();
+
 import colors from "colors";
 import cors from "cors";
-import dotenv from "dotenv";
 import morgan from "morgan";
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -15,15 +17,11 @@ import notificationRoute from "./routes/notificationRoute.js";
 import layoutRoute from "./routes/layoutRoute.js";
 import analyticsRoute from './routes/analyticsRoute.js';
 
-dotenv.config();
-
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_API_KEY,
   api_secret: process.env.CLOUD_SECRET_KEY,
 });
-
-console.log(`MONGO_URI: ${process.env.MONGO_URI}`);
 
 connectDB();
 
@@ -38,8 +36,6 @@ app.use(morgan("dev"));
 app.use(
   cors({
     origin: ["http://localhost:3000"],
-    methods: "GET,POST,PUT,DELETE",
-    allowedHeaders: "Content-Type,Authorization",
     credentials: true,
   })
 );
