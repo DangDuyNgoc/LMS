@@ -17,9 +17,6 @@ export const isAuthenticated = async (req, res, next) => {
   try {
     const access_token = req.cookies.access_token;
 
-    console.log("is: ", access_token);
-    console.log("header: ", req.headers);
-
     if (!access_token) {
       return res.status(401).send({
         success: false,

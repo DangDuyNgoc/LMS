@@ -19,23 +19,23 @@ const __dirname = path.dirname(__filename);
 
 export const registrationUser = async (req, res) => {
   const { name, email, password } = req.body;
-  if(!name) {
+  if (!name) {
     return res.status(201).send({
       success: false,
-      message: "Name is required!"
-    })
+      message: "Name is required!",
+    });
   }
-  if(!password) {
+  if (!password) {
     return res.status(201).send({
       success: false,
-      message: "password is required!"
-    })
+      message: "password is required!",
+    });
   }
-  if(!email) {
+  if (!email) {
     return res.status(201).send({
       success: false,
-      message: "Email is required!"
-    })
+      message: "Email is required!",
+    });
   }
   try {
     const existing = await userModel.findOne({ email });
@@ -365,6 +365,141 @@ export const updateUserPassword = async (req, res) => {
       message: "Updated Password",
       user: user,
     });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// request reset password
+export const requestPasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).send({
+        success: false,
+        message: "Please provide an email address.",
+      });
+    }
+
+    const user = await userModel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    const token = await createToken(user);
+    const activationCode = token.activationCode;
+
+    const data = { activationCode };
+    const html = await ejs.renderFile(
+      path.join(__dirname, "../mail/passwordMail.ejs"),
+      data
+    );
+
+    try {
+      await sendMail({
+        email: user.email,
+        subject: "Reset your password",
+        template: "passwordMail.ejs",
+        data,
+      });
+
+      return res.status(200).send({
+        success: true,
+        message: `Please check your email: ${user.email} to reset your password!`,
+        activationToken: token.token,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: "Failed to send activation email",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// verify otp reset password
+export const verifyOTP = async (req, res) => {
+  const { activation_token, activation_code } = req.body;
+
+  if (!activation_token || !activation_code) {
+    return res.status(400).send({
+      success: false,
+      message: "Please provide activation_code",
+    });
+  }
+
+  const newUser = jwt.verify(activation_token, process.env.JWT_SECRET);
+
+  if (newUser.activationCode !== activation_code) {
+    return res.status(401).send({
+      success: false,
+      message: "Invalid activation code",
+    });
+  }
+
+  res.status(200).send({
+    success: true,
+    message: "Verify OTP Successfully",
+  });
+};
+
+// reset password
+export const forgotPassword = async (req, res) => {
+  try {
+    const { newPassword, activation_token } = req.body;
+
+    if (!newPassword) {
+      return res.status(402).send({
+        success: false,
+        message: "Please provide newPassword",
+      });
+    }
+
+    const decoded = jwt.verify(activation_token, process.env.JWT_SECRET);
+
+    const user = await userModel.findById(decoded.user?._id);
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    const matchPassword = await matchPass(newPassword, user.password);
+    if (matchPassword) {
+      return res.status(400).send({
+        success: false,
+        message: "New password cannot be the same as the old password.",
+      });
+    }
+
+    const hash = await hashPassword(newPassword);
+    user.password = hash;
+
+    await user.save();
+
+    res.status(200).send({
+      success: true,
+      message: "Password reset successfully",
+      user: user,
+    });
+
   } catch (error) {
     console.log(error);
     res.status(500).send({

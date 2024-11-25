@@ -1,6 +1,5 @@
 import bodyParser from "body-parser";
 import dotenv, { config } from "dotenv";
-dotenv.config();
 
 import colors from "colors";
 import cors from "cors";
@@ -17,6 +16,8 @@ import notificationRoute from "./routes/notificationRoute.js";
 import layoutRoute from "./routes/layoutRoute.js";
 import analyticsRoute from './routes/analyticsRoute.js';
 
+dotenv.config();
+
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_API_KEY,
@@ -27,15 +28,15 @@ connectDB();
 
 const app = express();
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: false, limit: "10mb" }));
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(express.json({ limit: "10mb" }));
 
-app.use(express.json());
+app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: 'http://localhost:3000',
     credentials: true,
   })
 );

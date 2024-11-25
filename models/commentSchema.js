@@ -4,7 +4,7 @@ const commentSchema = new mongoose.Schema(
   {
     user: Object,
     question: String,
-    questionRelies: [Object],
+    questionReplies: [Object],
   },
   { timestamps: true }
 );

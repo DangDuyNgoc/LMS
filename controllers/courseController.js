@@ -149,7 +149,7 @@ export const getAllCourse = async (req, res) => {
 
     res.status(200).send({
       success: true,
-      message: "Course Found",
+      message: "Courses Found",
       course: course,
     });
   } catch (error) {
@@ -299,7 +299,7 @@ export const addAnswer = async (req, res) => {
       updatedAt: new Date().toISOString(),
     };
 
-    question.questionRelies.push(newAnswer);
+    question.questionReplies.push(newAnswer);
 
     await course.save();
 
@@ -339,6 +339,77 @@ export const addAnswer = async (req, res) => {
     res.status(200).send({
       success: true,
       message: "Answer added successfully",
+      course: course,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// delete question
+export const deleteQuestion = async (req, res) => {
+  try {
+    const { courseId, courseContentId, questionId } = req.body;
+    const course = await coursesModel.findById(courseId);
+
+    const userId = req.user._id;
+
+    if (!userId) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorized: User ID is missing",
+      });
+    }
+
+    if (!course) {
+      return res.status(404).send({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    const courseContent = course?.courseData?.find((item) => item._id.equals(courseContentId));
+
+    if (!courseContent) {
+      return res.status(404).send({
+        success: false,
+        message: "Course content not found",
+      });
+    }
+
+    const questionIndex = courseContent.questions.findIndex(
+      (question) => question._id.toString() === questionId.toString()
+    );
+
+    if (questionIndex === -1) {
+      return res.status(404).send({
+        success: false,
+        message: "Question not found",
+      });
+    }
+
+    // check authorization 
+    const question = courseContent.questions[questionIndex];
+
+    if (question.user._id.toString() !== userId.toString()) {
+      return res.status(403).send({
+        success: false,
+        message: "Unauthorized: Only the creator can delete this question",
+      });
+    }
+
+    // Remove the question
+    courseContent.questions.splice(questionIndex, 1);
+
+    await course.save();
+
+    res.status(200).send({
+      success: true,
+      message: "Question deleted successfully",
       course: course,
     });
   } catch (error) {
@@ -461,6 +532,69 @@ export const addReplyToReview = async (req, res) => {
     });
   }
 };
+
+// delete review 
+export const deleteReview = async (req, res) => {
+  try {
+    const {courseId, reviewId} = req.body;
+    const userId = req.user?._id;
+
+    if(!userId) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorized: User ID is missing",
+      });
+    }
+
+    const course = await coursesModel.findById(courseId);
+
+    if(!course) {
+      return res.status(404).send({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    // find Index of review
+    const reviewIndex = course.reviews.findIndex(
+      (review) => review._id.toString() === reviewId.toString()
+    );
+
+    if(reviewIndex === -1) {
+      return res.status(404).send({
+        success: false,
+        message: "Review not found",
+      });
+    }
+
+    const review = course.reviews[reviewIndex];
+
+    // check authorization to permission delete review
+    if(review.user?._id.toString() !== userId.toString()) {
+      return res.status(403).send({
+        success: false,
+        message: "Unauthorized: Only the creator can delete this review",
+      });
+    }
+
+    // remove review
+    course.reviews.splice(reviewIndex, 1);
+
+    await course.save();
+
+    res.status(200).send({
+      success: true,
+      message: "Review deleted successfully",
+      course: course,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+}
 
 // get all course for admin
 export const getAllCourseAdmin = async (req, res) => {
